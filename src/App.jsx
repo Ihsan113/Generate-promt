@@ -43,7 +43,6 @@ const App = () => {
     if (savedGroqKey) {
       setGroqApiKey(savedGroqKey);
     } else {
-      // Tampilkan settings jika belum ada key sama sekali
       setShowSettings(true);
     }
   }, []);
@@ -60,8 +59,8 @@ const App = () => {
       const steps = [
         "Initializing Llama 4 Scout Core...",
         "Scanning for Technical Artifacts...",
-        "Preventing Morphing & Physics Glitches...",
-        mode === 'video' ? `Mapping ${duration}s Shot Timeline...` : "Calculating Lens Physics...",
+        "Enforcing Adobe Stock Strict Rules...",
+        mode === 'video' ? `Mapping ${duration}s Continuous Shot...` : "Calculating Lens Physics...",
         "Injecting ProRes 4444 XQ Codec...",
         "Finalizing Masterpiece Prompt..."
       ];
@@ -77,7 +76,6 @@ const App = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // 10MB limit (Groq Llama 4 supports up to 20MB, but 10MB is safer for base64 payload)
       if (file.size > 10 * 1024 * 1024) {
         setError("File size too big (Max 10MB).");
         return;
@@ -114,16 +112,18 @@ const App = () => {
     setCopied(false);
 
     // --- PROTOCOL & LOGIC ASSEMBLY (SUTRADARA / DoP) ---
-    const artifactShield = `NO ARTIFACTS OR GLITCHES: moiré pattern, noise, grain, flicker, rolling shutter, jello effect, lens flare, vignetting, blocky, pixelation, macroblocking, stuttering, judder, ring effect, gibbs phenomenon, color banding, drop frame, freeze, interlacing artifacts, dust, spots, chromatic aberration, fringing, morphing, mutating, extra limbs, bad anatomy, warped perspective, physics violation, unnatural movement, floating objects.`;
+    // Menambahkan kata kunci negatif anti-cut dan anti-talking
+    const artifactShield = `NO ARTIFACTS OR GLITCHES: cuts, transitions, multiple shots, talking, speaking, lip-syncing, moiré pattern, noise, grain, flicker, rolling shutter, jello effect, lens flare, vignetting, blocky, pixelation, macroblocking, stuttering, judder, ring effect, gibbs phenomenon, color banding, drop frame, freeze, interlacing artifacts, dust, spots, chromatic aberration, fringing, morphing, mutating, extra limbs, bad anatomy, warped perspective, physics violation, unnatural movement, floating objects.`;
 
     const qualityTags = mode === 'video' 
-      ? `Tech Specs: 8k resolution, highly detailed, photorealistic, uncompressed RAW, high bitrate, ProRes 4444 XQ, 16-bit color depth, smooth color gradients, crystal clear, zero noise, ${duration}s duration, cinematic B-roll, 60fps. ${artifactShield}`
+      ? `Tech Specs: 8k resolution, highly detailed, photorealistic, uncompressed RAW, high bitrate, ProRes 4444 XQ, 16-bit color depth, smooth color gradients, crystal clear, zero noise, ${duration}s duration, single continuous cinematic shot, 60fps. ${artifactShield}`
       : `Tech Specs: 150MP Phase One IQ4, 16-bit TIFF, ISO 50, uncompressed RAW, sharp focus, hyper-detailed, photorealistic, 8k resolution, professional color grading. ${artifactShield}`;
 
     const audioInstruction = (mode === 'video' && includeAudio)
       ? `AUDIO REQUIREMENT: REQUIRED. You MUST add a section at the end: "Audio: [Specific SFX], [Music Mood]".`
       : `AUDIO REQUIREMENT: FORBIDDEN. Do NOT mention audio, music, or sound effects.`;
 
+    // Perubahan utama ada di bagian RULES di bawah ini
     const specificLogic = mode === 'video'
       ? `
         MODE: VIDEO (CINEMATIC FOOTAGE)
@@ -132,14 +132,15 @@ const App = () => {
         You MUST design the camera movement chronologically based on the ${duration}s duration to ensure smooth, professional pacing. 
         Do not just say "move the camera". Detail the pacing like a real Director of Photography.
         
-        Examples of pacing for ${duration}s:
-        - "0s-${Math.floor(duration/3)}s: Starts with a smooth, slow push-in establishing the subject. ${Math.floor(duration/3)}s-${Math.floor(duration*0.8)}s: Transitions into a subtle orbit (parallax effect) revealing the background depth. ${Math.floor(duration*0.8)}s-${duration}s: Gentle ease-out holding focus on the main subject."
+        Examples of continuous pacing for ${duration}s:
+        - "0s-${Math.floor(duration/3)}s: Starts with a smooth, slow push-in establishing the subject. ${Math.floor(duration/3)}s-${Math.floor(duration*0.8)}s: Evolves into a subtle orbit (parallax effect) revealing the background depth. ${Math.floor(duration*0.8)}s-${duration}s: Gentle ease-out holding focus on the main subject."
         - "Slow motion tracking shot maintaining a perfectly stable frame throughout the entire ${duration} seconds, easing into a rack focus at the very end."
         
-        RULES:
-        1. Ensure the movement complexity perfectly matches the ${duration}s length (do not rush a 5s shot, do not make a 60s shot too static).
-        2. Describe the motion in English using pro terms: Ease-in, Speed Ramp, Pedestal, Dolly, Parallax, Rack Focus, Tracking.
-        3. Make sure the subject acts naturally (No sudden, impossible, or glitchy movements).
+        ADOBE STOCK STRICT RULES (MANDATORY):
+        1. NO TRANSITIONS, NO CUTS: The entire video MUST be described as a SINGLE, UNINTERRUPTED, SEAMLESS SHOT. Do not use words like "transition to", "cut to", or "next scene". Use words like "evolves into", "camera continues to pan", or "seamlessly shifts".
+        2. NO TALKING OR LIP-SYNCING: If there are human subjects, they MUST NOT speak, talk, or move their mouths as if conversing. Natural non-verbal expressions (smiling, looking thoughtful, laughing with closed mouth) are allowed and encouraged.
+        3. Ensure the movement complexity perfectly matches the ${duration}s length.
+        4. Make sure the subject acts naturally (No sudden, impossible, or glitchy movements).
         `
       : `
         MODE: PHOTOGRAPHY (HIGH-END)
@@ -199,7 +200,6 @@ const App = () => {
 
       // --- POST PROCESSING ---
       if (aiGeneratedText) {
-        // Membersihkan tag bawaan jika AI tidak sengaja menuliskannya
         aiGeneratedText = aiGeneratedText
           .replace(/--ar \d+:\d+/g, '')
           .replace(/--video/g, '')
@@ -207,7 +207,6 @@ const App = () => {
           .replace(/Tech Specs:/gi, '')
           .replace(/NO ARTIFACTS.*/gi, ''); 
         
-        // Merakit hasil akhir (Teks AI + Standar Kualitas + Parameter Aspect Ratio)
         const finalAssembly = `${aiGeneratedText.trim()} ${qualityTags} --ar ${aspectRatio} ${mode === 'video' ? '--video' : '--v 6.0'}`;
         
         setResult(finalAssembly);
@@ -482,7 +481,7 @@ const App = () => {
                   <div className="flex items-center gap-2 bg-zinc-900/50 px-2 py-1.5 rounded border border-zinc-800">
                     <ShieldCheck size={10} className="text-orange-500" />
                     <span className="text-[9px] text-zinc-400">
-                      Anti-Morph Active
+                      Adobe Stock Safe
                     </span>
                   </div>
                </div>
